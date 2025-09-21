@@ -99,7 +99,7 @@ def ensure_wordlist(provided):
     for wl in DEFAULT_WORDLIST:
         if Path(wl).is_file():
             return [wl]
-    print("[!]No default wordlist found. Please provide a valid wordlist.")
+    print("[!]No default wordlist found. Please provide a valid wordlist. Look into installing seclists or dirb from github")
     sys.exit(1)
 
 # Create a parameter-specific wordlist with common vulnerability indicators

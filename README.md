@@ -6,17 +6,17 @@ A comprehensive collection of utility scripts organized by category, designed to
 
 ```
 super-scripts/
-├── security/           # Security testing and penetration testing tools
+├── recon/           # Security assesment and discovery
 ├── More to come ...
 ```
 
 ## Script Categories
 
-### [Security](./security/)
-Tools for penetration testing, security assessment, and vulnerability research.
+### [Recon](./recon/)
+Tools for security assessment, and vulnerability research.
 - **Enumeration Chain**: Automated reconnaissance and enumeration
-- **Port Scanning**: Network service discovery
-- **Web Fuzzing**: Directory and parameter fuzzing
+- **Port Scanning**: Network service discovery(using nmap of course!)
+- **Web Fuzzing**: Directory and parameter fuzzing(ffuf ftw)
 
 ## Quick Start
 
@@ -28,7 +28,7 @@ Tools for penetration testing, security assessment, and vulnerability research.
 
 2. **Navigate to a category:**
    ```bash
-   cd security 
+   cd recon 
    ```
 
 3. **Read the category README:**

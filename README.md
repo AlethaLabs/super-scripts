@@ -22,7 +22,7 @@ Tools for security assessment, and vulnerability research.
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/c3r35/super-scripts.git
+   git clone https://github.com/AlethaLabs/super-scripts.git
    cd super-scripts
    ```
 

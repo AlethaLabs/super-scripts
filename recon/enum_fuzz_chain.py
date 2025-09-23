@@ -7,7 +7,7 @@ It combines subdomain enumeration, port scanning, directory fuzzing, and paramet
 in a single automated workflow.
 
 Features:
-- Subdomain enumeration using subfinder or amass
+- Subdomain enumeration using subfinder
 - Port scanning with nmap (quick and full scans)
 - Directory/file fuzzing with ffuf
 - Parameter discovery and testing
@@ -17,7 +17,7 @@ Requirements:
 - Python 3.6+
 - nmap (sudo apt install nmap)
 - ffuf (go install github.com/ffuf/ffuf@latest)
-- subfinder (recommended) or amass for subdomain enumeration
+- subfinder (go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest)
 - curl for connectivity testing
 
 Usage Examples:
@@ -25,10 +25,11 @@ Usage Examples:
     python3 enumeration_chain.py example.com
 
     # With custom wordlist and thread count
-    python3 enumeration_chain.py example.com -w /path/to/wordlist.txt -t 100
+    python3 enumeration_chain.py example.com -w /path/to/wordlist.txt -t 10
 
     # Full enumeration including comprehensive port scan
-    python3 enumeration_chain.py example.com --full
+    # Use with caution - slow and intrusive!!
+    python3 enumeration_chain.py example.com --full -w /path/to/wordlist.txt -t 20
 
 Output Structure:
     ~/enumeration_results/
@@ -63,7 +64,7 @@ from pathlib import Path
 COMMON_PORTS = [21, 22, 23, 25, 53, 80, 110, 139, 143, 443, 445, 3306, 3389, 5900, 8080]
 
 # Default number of concurrent threads for FFUF directory fuzzing
-DEFAULT_FFUF_THREADS = 50
+DEFAULT_FFUF_THREADS = 20
 
 # Default wordlists for directory/file discovery (checked in order of preference)
 DEFAULT_WORDLIST = ["/usr/share/wordlists/dirb/common.txt",
@@ -104,19 +105,7 @@ def ensure_wordlist(provided):
 
 # Create a parameter-specific wordlist with common vulnerability indicators
 def create_param_wordlist(out_dir):
-    """
-    Create a parameter-specific wordlist for better testing.
-    
-    Generates a wordlist containing values commonly used to test web application
-    parameters for various vulnerabilities including SQL injection, XSS, path
-    traversal, and command injection.
-    
-    Args:
-        out_dir (Path): Output directory where wordlist will be created
-        
-    Returns:
-        str: Path to the created parameter wordlist file
-    """
+   
     param_wordlist = out_dir / "param_values.txt"
     
     # Common parameter values that often reveal functionality
@@ -151,10 +140,10 @@ def create_param_wordlist(out_dir):
 
 def main():
     """
-    Main enumeration workflow orchestrator.
+    Main workflow
     
     Executes a comprehensive enumeration chain including:
-    1. Subdomain enumeration (subfinder/amass)
+    1. Subdomain enumeration (subfinder)
     2. Port scanning (nmap quick + optional full scan)
     3. Directory/file fuzzing (ffuf)
     4. Parameter discovery and testing
@@ -164,20 +153,15 @@ def main():
     parser = argparse.ArgumentParser(
         description="Automated Enumeration Chain Script - Comprehensive web application security testing workflow",
         epilog="""
-Examples:
-  %(prog)s example.com                           # Basic enumeration with auto scope detection
-  %(prog)s test.example.com --scope strict       # Only enumerate *.test.example.com
-  %(prog)s test.example.com --scope broad        # Enumerate all *.example.com subdomains
-  %(prog)s example.com -w /path/to/wordlist.txt  # Use custom wordlist for directory fuzzing
-  %(prog)s example.com -t 100 --full             # High-speed scanning with full port enumeration
-  
-Output:
-  Results are saved to ~/enumeration_results/TARGET_TIMESTAMP/ with organized subdirectories
-  for each enumeration phase. Check the logs for detailed information and errors.
-  
-Security Notice:
-  Only use this tool against targets you own or have explicit permission to test.
-  Unauthorized scanning may be illegal in your jurisdiction.
+            Usage Examples:
+                python3 enum_fuzz_chain.py example.com -w <wordlist> -t 20 --scope strict
+            Output:
+            Results are saved to ~/enumeration_results/TARGET_TIMESTAMP/ with organized subdirectories
+            for each enumeration phase. Check the logs for detailed information and errors.
+            
+            Security Notice:
+            Only use this tool against targets you own or have explicit permission to test.
+            Unauthorized scanning may be illegal in your jurisdiction.
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -191,9 +175,10 @@ Security Notice:
     parser.add_argument("--scope", choices=["auto", "broad", "strict"], default="auto",
                        help="""Enumeration scope control:
   'auto' - smart detection based on target (default)
-  'broad' - enumerate all subdomains of root domain (e.g., *.uber.com for test.uber.com)
+  'broad' - enumerate all subdomains of root domain (e.g., *.uber.com for all.uber.com)
   'strict' - only enumerate under target domain (e.g., *.test.uber.com for test.uber.com)
-  Use 'broad' for unrestricted assessments, 'strict' for scoped penetration tests""")
+  Use 'broad' for unrestricted assessments, 'strict' for scoped tests""")
+
     args = parser.parse_args()
 
     target = args.target.strip()
@@ -276,12 +261,11 @@ Security Notice:
             enumeration_target = target
             scope_filter = lambda domain: domain.endswith(f'.{target}') or domain == target
     
-    # Try multiple subdomain enumeration tools for better coverage
+    # Subfinder-only subdomain enumeration
     print(f"[*] Starting {scope_mode} subdomain enumeration for {enumeration_target}...")
     
-    # Enhanced Subfinder with better configuration
     if cmd_exists("subfinder"):
-        print("[*] Running enhanced subfinder...")
+        print("[*] Running subfinder...")
         try:
             subfinder_out = out_dir / "subfinder_temp.txt"
             subfinder_cmd = [
@@ -316,98 +300,11 @@ Security Notice:
                 print("[!] Subfinder output file not created")
                 
         except Exception as e:
-            print(f"[!] Error running enhanced subfinder: {e}")
-    
-    # Try assetfinder as additional source
-    if cmd_exists("assetfinder"):
-        print("[*] Running assetfinder...")
-        try:
-            assetfinder_cmd = ["assetfinder", "--subs-only", enumeration_target]
-            result = run(assetfinder_cmd, capture=True, check=False)
-            
-            if result.stdout:
-                initial_count = len(all_subdomains)
-                for line in result.stdout.split('\n'):
-                    subdomain = line.strip()
-                    if subdomain and scope_filter(subdomain):
-                        all_subdomains.add(subdomain)
-                new_count = len(all_subdomains) - initial_count
-                print(f"[+] Assetfinder added {new_count} new in-scope domains")
-            
-        except Exception as e:
-            print(f"[!] Error running assetfinder: {e}")
-    
-    # Try findomain as additional source
-    if cmd_exists("findomain"):
-        print("[*] Running findomain...")
-        try:
-            findomain_cmd = ["findomain", "-t", enumeration_target, "-u"]
-            result = run(findomain_cmd, capture=True, check=False)
-            
-            if result.stdout:
-                initial_count = len(all_subdomains)
-                for line in result.stdout.split('\n'):
-                    subdomain = line.strip()
-                    if subdomain and scope_filter(subdomain):
-                        all_subdomains.add(subdomain)
-                new_count = len(all_subdomains) - initial_count
-                print(f"[+] Findomain added {new_count} new in-scope domains")
-            
-        except Exception as e:
-            print(f"[!] Error running findomain: {e}")
-    
-    # Fallback to amass if other tools didn't work well
-    if len(all_subdomains) <= 1 and cmd_exists("amass"):  # Only original target found
-        try:
-            print("[*] Running amass as fallback...")
-            amass_cmd = [
-                "amass", "enum",
-                "-d", enumeration_target,
-                "-timeout", "5",  # Shorter timeout as fallback
-                "-passive",       # Passive only for speed
-                "-v"
-            ]
-            
-            print(f"[*] Amass command: {' '.join(amass_cmd)}")
-            result = run(amass_cmd, capture=True, check=False)
-            
-            if result.stdout:
-                initial_count = len(all_subdomains)
-                for line in result.stdout.split('\n'):
-                    subdomain = line.strip()
-                    if subdomain and not subdomain.startswith('[') and scope_filter(subdomain):
-                        all_subdomains.add(subdomain)
-                new_count = len(all_subdomains) - initial_count
-                print(f"[+] Amass added {new_count} new in-scope subdomains")
-            
-        except Exception as e:
-            print(f"[!] Error running amass: {e}")
-    
-    # If still no results, try crt.sh via curl
-    if len(all_subdomains) <= 1:
-        print(f"[*] Trying crt.sh certificate transparency logs for {enumeration_target}...")
-        try:
-            crt_cmd = ["curl", "-s", f"https://crt.sh/?q=%25.{enumeration_target}&output=json"]
-            result = run(crt_cmd, capture=True, check=False)
-            
-            if result.stdout and result.stdout.startswith('['):
-                import json
-                try:
-                    crt_data = json.loads(result.stdout)
-                    initial_count = len(all_subdomains)
-                    for entry in crt_data:
-                        if 'name_value' in entry:
-                            names = entry['name_value'].split('\n')
-                            for name in names:
-                                name = name.strip()
-                                if name and '*' not in name and scope_filter(name):
-                                    all_subdomains.add(name)
-                    new_count = len(all_subdomains) - initial_count
-                    print(f"[+] crt.sh added {new_count} new in-scope subdomains")
-                except json.JSONDecodeError:
-                    print("[!] Failed to parse crt.sh response")
-        except Exception as e:
-            print(f"[!] Error querying crt.sh: {e}")
+            print(f"[!] Error running subfinder: {e}")
+    else:
+        print("[!] Subfinder not found. Please install it:")
+        print("    https://github.com/projectdiscovery/subfinder for more details")
+        print("[*] Continuing with target domain only...")
     
     # Always ensure the original target is included
     all_subdomains.add(target)
@@ -447,7 +344,7 @@ Security Notice:
                                 all_subdomains.add(test_domain)
                                 print(f"[+] Found: {test_domain}")
                     
-                    # Small delay to be polite
+                    # Small delay 
                     time.sleep(0.1)
                     
                 except Exception as e:
@@ -485,9 +382,9 @@ Security Notice:
             else:
                 print(f"[!] No subdomains discovered. Consider:")
                 print(f"    - Domain may not have subdomains")
-                print(f"    - Installing additional tools: assetfinder, findomain")
-                print(f"    - Configuring API keys for subfinder/amass")
+                print(f"    - Configuring API keys for subfinder")
                 print(f"    - Manual verification with online tools (crt.sh, Shodan)")
+                print(f"    - Checking if subfinder is properly installed and configured")
     else:
         # Fallback - create file with just target
         with open(subdomains_file, "w") as f:

@@ -1,4 +1,4 @@
-# Security Scripts
+# Recon Scripts
 
 This directory contains scripts focused on security testing, penetration testing, and security assessment tools.
 
@@ -16,7 +16,7 @@ This directory contains scripts focused on security testing, penetration testing
 Automated enumeration script that chains together multiple reconnaissance tools for comprehensive target assessment.
 
 **Features:**
-- Subdomain discovery (subfinder/amass)
+- Subdomain discovery (subfinder)
 - Port scanning (nmap)
 - Directory fuzzing (ffuf)
 - Parameter fuzzing

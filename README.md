@@ -36,7 +36,13 @@ Tools for security assessment, and vulnerability research.
    cat README.md
    ```
 
-4. **Run a script:**
+4. **Read the code! This allows you to see the required tools for a given script**
+   ```bash
+   vim script_name.py
+   # Or your preffered text editor
+   ```
+
+5. **Run a script:**
    ```bash
    python3 script_name.py --help
    ```
@@ -50,10 +56,10 @@ General requirements across most scripts:
 
 ## Important Notes
 
-### Security Scripts
+### Scripts
 - **Authorization required**: Only use on systems you own or have explicit permission to test
 - **Legal compliance**: Ensure all usage complies with applicable laws and regulations
-- **Ethical usage**: Follow responsible disclosure practices
+- **Ethical usage**: Follow responsible disclosure and cooperation practices
 
 ## Contributing
 

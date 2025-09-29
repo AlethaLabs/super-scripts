@@ -1,10 +1,10 @@
-# Super Scripts 🚀
+# Super Scripts
 
 A comprehensive collection of utility scripts organized by category, designed to streamline security testing, system administration, development workflows, and automation tasks.
 
 ## Repository Structure
 
-```
+```bash
 super-scripts/
 ├── recon/           # Security assesment and discovery
 ├── More to come ...
@@ -13,7 +13,9 @@ super-scripts/
 ## Script Categories
 
 ### [Recon](./recon/)
+
 Tools for security assessment, and vulnerability research.
+
 - **Enumeration Chain**: Automated reconnaissance and enumeration
 - **Port Scanning**: Network service discovery(using nmap of course!)
 - **Web Fuzzing**: Directory and parameter fuzzing(ffuf ftw)
@@ -21,28 +23,33 @@ Tools for security assessment, and vulnerability research.
 ## Quick Start
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/AlethaLabs/super-scripts.git
    cd super-scripts
    ```
 
 2. **Navigate to a category:**
+
    ```bash
    cd recon 
    ```
 
 3. **Read the category README:**
+
    ```bash
    cat README.md
    ```
 
 4. **Read the code! This allows you to see the required tools for a given script**
+
    ```bash
    vim script_name.py
    # Or your preffered text editor
    ```
 
 5. **Run a script:**
+
    ```bash
    python3 script_name.py --help
    ```
@@ -50,6 +57,7 @@ Tools for security assessment, and vulnerability research.
 ## Prerequisites
 
 General requirements across most scripts:
+
 - **Python 3.6+**
 - **Appropriate permissions** (some scripts require sudo/root)
 - **Category-specific tools** (detailed in each category's README)
@@ -57,6 +65,7 @@ General requirements across most scripts:
 ## Important Notes
 
 ### Scripts
+
 - **Authorization required**: Only use on systems you own or have explicit permission to test
 - **Legal compliance**: Ensure all usage complies with applicable laws and regulations
 - **Ethical usage**: Follow responsible disclosure and cooperation practices
@@ -95,7 +104,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Thanks to all the open-source security and development tools that make these scripts possible
 - Inspired by the need for organized, reusable utility scripts
